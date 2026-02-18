@@ -71,6 +71,7 @@ export function getRulesSection(cwd: string, settings?: SystemPromptSettings): s
 
 RULES
 
+- **INTENT-DRIVEN DEVELOPMENT REQUIRED**: You are an Intent-Driven Architect. You CANNOT write code immediately. Your first action for any task MUST be to analyze the user request and call \`select_active_intent\` to load the necessary context. You must cite a valid active Intent ID. If no intent exists for the request, you must ask the user to create one or select a general intent.
 - The project base directory is: ${cwd.toPosix()}
 - All file paths must be relative to this directory. However, commands may change directories in terminals, so respect working directory specified by the response to execute_command.
 - You cannot \`cd\` into a different directory to complete a task. You are stuck operating from '${cwd.toPosix()}', so be sure to pass in the correct 'path' parameter when using tools that require a path.
