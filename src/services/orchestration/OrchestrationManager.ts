@@ -1,5 +1,6 @@
 import * as fs from "fs/promises"
 import * as path from "path"
+import * as yaml from "js-yaml"
 import { Intent, AgentTrace } from "../../hooks/types"
 
 export class OrchestrationManager {
@@ -25,19 +26,15 @@ export class OrchestrationManager {
 		await this.ensureOrchestrationDir()
 		try {
 			const content = await fs.readFile(this.intentsFile, "utf8")
-			// Simplified YAML parsing for this phase
-			const intents: Intent[] = []
-
-			// Basic regex-based parsing if no yaml lib available, or assume JSON-like structure if needed.
-			// For robustness, we'd add 'js-yaml' dependency later.
-			// For now, let's assume a simple key-value structure or return a default if empty.
 			if (!content) return []
 
-			// Placeholder: In a real implementation, use a YAML parser.
-			// For this skeleton, we'll return an empty array or mock based on file presence.
+			const parsed = yaml.load(content) as any
+			if (parsed && Array.isArray(parsed.active_intents)) {
+				return parsed.active_intents as Intent[]
+			}
 			return []
 		} catch (error) {
-			// File might not exist yet
+			// File might not exist yet or invalid yaml
 			return []
 		}
 	}
