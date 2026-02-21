@@ -1,21 +1,18 @@
 active_intents:
   - id: "INT-001"
-    name: "Implement Hook Middleware"
+    name: "Build Weather API"
     status: "IN_PROGRESS"
-    owned_scope: 
-      - "src/hooks/**"
-      - "src/core/Cline.ts"
+    owned_scope:
+      - "src/services/weather/**"
+      - "src/api/routes/weather.ts"
     constraints:
-      - "Must not break existing tool execution flow"
-      - "Must log all write operations to agent_trace.jsonl"
+      - "Must not use external API keys directly in code"
+      - "Must implement caching"
     acceptance_criteria:
-      - "Pre-hook intercepts write_to_file calls"
-      - "Post-hook logs proper JSONL trace"
+      - "GET /weather returns 200 JSON"
 
-  - id: "INT-002"
-    name: "Refactor Authentication"
+  - id: "SYS-001"
+    name: "System Refactor"
     status: "TODO"
     owned_scope:
-      - "src/auth/**"
-    constraints:
-      - "Use JWT only"
+      - "src/**"
