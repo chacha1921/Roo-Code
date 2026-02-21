@@ -1,6 +1,7 @@
 import { Intent, HookContext } from "./types"
 import { IntentCheck } from "./PreTools/IntentCheck"
 import { TraceLogger } from "./PostTools/TraceLogger"
+import { ScopeCheck } from "./PreTools/ScopeCheck"
 
 export class HookEngine {
 	private static instance: HookEngine
@@ -42,6 +43,16 @@ export class HookEngine {
 			// Check if intent status is IN_PROGRESS
 			if (intent.status !== "IN_PROGRESS") {
 				throw new Error(`Active intent '${intent.id}' is not in IN_PROGRESS status.`)
+			}
+
+			// Phase 2: Scope Enforcement
+			// Only check for write operations that have a path argument
+			const filePath = args.path || args.file_path
+			if (filePath) {
+				const scopeResult = await ScopeCheck.validate(intent, filePath, this._context.workspaceRoot)
+				if (scopeResult !== true) {
+					throw new Error(scopeResult as string)
+				}
 			}
 
 			console.log(`[HookEngine] Pre-check for ${toolName} under intent ${intent.id}`)
