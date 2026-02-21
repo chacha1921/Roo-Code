@@ -1,0 +1,21 @@
+active_intents:
+  - id: "INT-001"
+    name: "Implement Hook Middleware"
+    status: "IN_PROGRESS"
+    owned_scope: 
+      - "src/hooks/**"
+      - "src/core/Cline.ts"
+    constraints:
+      - "Must not break existing tool execution flow"
+      - "Must log all write operations to agent_trace.jsonl"
+    acceptance_criteria:
+      - "Pre-hook intercepts write_to_file calls"
+      - "Post-hook logs proper JSONL trace"
+
+  - id: "INT-002"
+    name: "Refactor Authentication"
+    status: "TODO"
+    owned_scope:
+      - "src/auth/**"
+    constraints:
+      - "Use JWT only"
