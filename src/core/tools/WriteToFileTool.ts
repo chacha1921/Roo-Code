@@ -17,6 +17,7 @@ import { convertNewFileToUnifiedDiff, computeDiffStats, sanitizeUnifiedDiff } fr
 import type { ToolUse } from "../../shared/tools"
 
 import { BaseTool, ToolCallbacks } from "./BaseTool"
+import { HookEngine } from "../../hooks/HookEngine"
 
 interface WriteToFileParams {
 	path: string
@@ -30,6 +31,16 @@ export class WriteToFileTool extends BaseTool<"write_to_file"> {
 		const { pushToolResult, handleError, askApproval } = callbacks
 		const relPath = params.path
 		let newContent = params.content
+
+		// Hook: Pre-Execution Check
+		try {
+			// Ensure HookEngine has context (we set it here just in case, though select_active_intent sets it too)
+			HookEngine.getInstance().setContext({ workspaceRoot: task.workspacePath })
+			await HookEngine.getInstance().onPreToolExecution("write_to_file", { path: relPath, content: newContent })
+		} catch (error: any) {
+			pushToolResult(`Hook Validation Failed: ${error.message}`)
+			return
+		}
 
 		if (!relPath) {
 			task.consecutiveMistakeCount++
@@ -252,6 +263,13 @@ export class WriteToFileTool extends BaseTool<"write_to_file"> {
 			await task.diffViewProvider.update(
 				everyLineHasLineNumbers(newContent) ? stripLineNumbers(newContent) : newContent,
 				false,
+			)
+
+			// Hook: Post-Execution Log
+			await HookEngine.getInstance().onPostToolExecution(
+				"write_to_file",
+				{ path: relPath, content: newContent },
+				"success",
 			)
 		}
 	}

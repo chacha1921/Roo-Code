@@ -1,0 +1,18 @@
+active_intents:
+  - id: "INT-001"
+    name: "Build Weather API"
+    status: "IN_PROGRESS"
+    owned_scope:
+      - "src/services/weather/**"
+      - "src/api/routes/weather.ts"
+    constraints:
+      - "Must not use external API keys directly in code"
+      - "Must implement caching"
+    acceptance_criteria:
+      - "GET /weather returns 200 JSON"
+
+  - id: "SYS-001"
+    name: "System Refactor"
+    status: "TODO"
+    owned_scope:
+      - "src/**"
