@@ -1,21 +1,29 @@
-import { Intent, HookContext } from "./types"
-import { IntentCheck } from "./PreTools/IntentCheck"
-import { TraceLogger } from "./PostTools/TraceLogger"
-import { ScopeCheck } from "./PreTools/ScopeCheck"
+import { Intent, HookContext, Hook, ToolInput } from "./types"
+import { IntentValidationHook } from "./PreTools/IntentValidationHook"
+import { TraceLoggerHook } from "./PostTools/TraceLoggerHook"
 
 export class HookEngine {
 	private static instance: HookEngine
 	private _context: HookContext = {
 		workspaceRoot: "",
 	}
+	private _hooks: Hook[] = []
 
-	private constructor() {}
+	private constructor() {
+		// Register default hooks
+		this.registerHook(new IntentValidationHook())
+		this.registerHook(new TraceLoggerHook())
+	}
 
 	public static getInstance(): HookEngine {
 		if (!HookEngine.instance) {
 			HookEngine.instance = new HookEngine()
 		}
 		return HookEngine.instance
+	}
+
+	public registerHook(hook: Hook) {
+		this._hooks.push(hook)
 	}
 
 	public setContext(context: Partial<HookContext>) {
@@ -31,41 +39,33 @@ export class HookEngine {
 	}
 
 	public async onPreToolExecution(toolName: string, args: any): Promise<void> {
-		// Only run checks for modification tools
-		if (toolName === "write_to_file" || toolName === "edit" || toolName === "apply_diff") {
-			const intent = this._context.activeIntent
+		const input: ToolInput = { toolName, args }
 
-			// If no intent is active, warn/block.
-			if (!intent) {
-				throw new Error("No active intent selected. Please use 'select_active_intent' tool first.")
-			}
-
-			// Check if intent status is IN_PROGRESS
-			if (intent.status !== "IN_PROGRESS") {
-				throw new Error(`Active intent '${intent.id}' is not in IN_PROGRESS status.`)
-			}
-
-			// Phase 2: Scope Enforcement
-			// Only check for write operations that have a path argument
-			const filePath = args.path || args.file_path
-			if (filePath) {
-				const scopeResult = await ScopeCheck.validate(intent, filePath, this._context.workspaceRoot)
-				if (scopeResult !== true) {
-					throw new Error(scopeResult as string)
+		for (const hook of this._hooks) {
+			if (hook.onPreAction) {
+				try {
+					await hook.onPreAction(this._context, input)
+				} catch (error: any) {
+					console.error(`[HookEngine] Error in pre-hook '${hook.name}':`, error)
+					// Re-throw to block execution for critical checks
+					throw error
 				}
 			}
-
-			console.log(`[HookEngine] Pre-check for ${toolName} under intent ${intent.id}`)
 		}
 	}
 
 	public async onPostToolExecution(toolName: string, args: any, result: string): Promise<void> {
-		if (toolName === "write_to_file" && this._context.activeIntent) {
-			const intentId = this._context.activeIntent.id
-			const filePath = args.path
-			const content = args.content
+		const input: ToolInput = { toolName, args, result }
 
-			await TraceLogger.log(filePath, content, intentId)
+		for (const hook of this._hooks) {
+			if (hook.onPostAction) {
+				try {
+					await hook.onPostAction(this._context, input)
+				} catch (error) {
+					// Isolate errors in post-hooks so they don't break the flow
+					console.error(`[HookEngine] Error in post-hook '${hook.name}':`, error)
+				}
+			}
 		}
 	}
 }

@@ -20,3 +20,16 @@ export interface HookContext {
 	activeIntent?: Intent
 	workspaceRoot: string
 }
+
+export interface ToolInput {
+	toolName: string
+	args: any
+	result?: any
+	error?: unknown
+}
+
+export interface Hook {
+	name: string
+	onPreAction?(context: HookContext, input: ToolInput): Promise<void>
+	onPostAction?(context: HookContext, input: ToolInput): Promise<void>
+}
