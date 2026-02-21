@@ -14,9 +14,25 @@ export interface AgentTrace {
 	file_path: string
 	content_hash: string
 	diff?: string
+	mutation_class?: "refactor" | "feature" | "fix" | "unknown"
+	git_rev?: string
+	spec_refs?: string[]
 }
 
 export interface HookContext {
 	activeIntent?: Intent
 	workspaceRoot: string
+}
+
+export interface ToolInput {
+	toolName: string
+	args: any
+	result?: any
+	error?: unknown
+}
+
+export interface Hook {
+	name: string
+	onPreAction?(context: HookContext, input: ToolInput): Promise<void>
+	onPostAction?(context: HookContext, input: ToolInput): Promise<void>
 }
