@@ -21,6 +21,7 @@ import switchMode from "./switch_mode"
 import updateTodoList from "./update_todo_list"
 import writeToFile from "./write_to_file"
 import { select_active_intent } from "./select_active_intent"
+import { get_curated_context } from "./get_curated_context"
 
 export { getMcpServerTools } from "./mcp_server"
 
@@ -51,6 +52,7 @@ export function getNativeTools(options: NativeToolsOptions = {}): OpenAI.Chat.Ch
 	return [
 		accessMcpResource,
 		select_active_intent,
+		get_curated_context,
 
 		apply_diff,
 		applyPatch,

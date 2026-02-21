@@ -115,6 +115,8 @@ export type NativeToolArgs = {
 	update_todo_list: { todos: string }
 	use_mcp_tool: { server_name: string; tool_name: string; arguments?: Record<string, unknown> }
 	write_to_file: { path: string; content: string }
+	select_active_intent: { intent_id: string }
+	get_curated_context: { intent_id: string; token_budget?: string }
 	// Add more tools as they are migrated to native protocol
 }
 

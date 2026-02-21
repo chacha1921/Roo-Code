@@ -125,6 +125,37 @@ interface AgentTrace {
     - **Decision**: implement logic as validatable hooks rather than prompt instructions.
     - **Reasoning**: Prompts are probabilistic; code is deterministic. To guarantee safety (e.g., preventing edits to protected files), we must move constraints from the "Context Window" (soft constraint) to the "Runtime Environment" (hard constraint).
 
+### 2.4 Selective Context Curation (Intent Context)
+
+To avoid flooding the model with irrelevant information, the system must construct a focused `<intent_context>` payload that is scoped to the active intent and limited by a token budget. This is _curation_, not just validation.
+
+**Intent Context Schema (`intent_context` block):**
+
+```typescript
+interface IntentContext {
+	intent: {
+		id: string
+		name: string
+		status: "TODO" | "IN_PROGRESS" | "DONE" | "BLOCKED"
+		owned_scope: string[]
+		constraints: string[]
+		acceptance_criteria: string[]
+	}
+	relevance_budget: {
+		max_tokens: number
+		strategy: "top-k" | "time-decay" | "hybrid"
+	}
+	artifacts: {
+		intent_map_excerpt?: string
+		technical_context_excerpt?: string
+		shared_brain_snippets?: Array<{ section: string; note: string }>
+		recent_traces?: Array<{ id: string; file_path: string; mutation_class: string }>
+	}
+}
+```
+
+**Justification:** Explicit curation reduces **Cognitive Debt** by ensuring the model only sees high-signal, intent-aligned context. This prevents the context window from being consumed by stale or unrelated information and creates a deterministic, auditable context assembly step.
+
 ---
 
 ## 3. Agent Flow & Hook Implementation
@@ -135,6 +166,7 @@ The `HookEngine` manages the lifecycle of tool execution. It maintains the curre
 
 - **Pre-Execution**: Before any tool runs, `onPreToolExecution` invokes `IntentValidationHook`.
 - **Post-Execution**: After a tool completes, `onPostToolExecution` invokes `TraceLoggerHook`.
+- **Context Assembly**: The agent can now call `get_curated_context` to retrieve a selective `<intent_context>` block assembled from `.orchestration/` artifacts, respecting a token budget.
 
 ### 3.2 Intent Validation (`src/hooks/PreTools/IntentValidationHook.ts`)
 
@@ -176,6 +208,7 @@ The work completed in this session transforms the agent from a reactive coder in
 1.  **Safety First**: The `IntentValidationHook` acts as a hard boundary, preventing the agent from modifying files it does not own. This directly reduces the blast radius of potential errors.
 2.  **Radical Transparency**: The `TraceLoggerHook` provides a deterministic audit trail that persists even if git history is altered, building trust in autonomous actions.
 3.  **Knowledge Continuity**: The `shared_brain.md` ensures that architectural patterns and project-specific vocabulary are not lost between sessions, reducing the cognitive load on the human operator to re-explain context.
+4.  **Selective Context**: The `get_curated_context` tool allows the agent to pull high-signal, relevant context on demand, solving the 'Cognitive Debt' of large context windows.
 
 ### 5.2 Limitations & Challenges
 
