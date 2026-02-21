@@ -46,6 +46,7 @@ export const toolNames = [
 	"skill",
 	"generate_image",
 	"select_active_intent",
+	"get_curated_context",
 	"custom_tool",
 ] as const
 

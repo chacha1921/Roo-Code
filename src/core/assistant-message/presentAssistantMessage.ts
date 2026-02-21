@@ -38,6 +38,7 @@ import { applyDiffTool as applyDiffToolClass } from "../tools/ApplyDiffTool"
 import { isValidToolName, validateToolUse } from "../tools/validateToolUse"
 import { codebaseSearchTool } from "../tools/CodebaseSearchTool"
 import { selectActiveIntentTool } from "../tools/SelectActiveIntentTool"
+import { getCuratedContextTool } from "../tools/GetCuratedContextTool"
 
 import { formatResponse } from "../prompts/responses"
 import { sanitizeToolUseId } from "../../utils/tool-id"
@@ -384,6 +385,8 @@ export async function presentAssistantMessage(cline: Task) {
 						return `[${block.name} for '${block.params.skill}'${block.params.args ? ` with args: ${block.params.args}` : ""}]`
 					case "generate_image":
 						return `[${block.name} for '${block.params.path}']`
+					case "get_curated_context":
+						return `[${block.name} for '${block.params.intent_id}']`
 					default:
 						return `[${block.name}]`
 				}
@@ -845,6 +848,13 @@ export async function presentAssistantMessage(cline: Task) {
 				case "generate_image":
 					await checkpointSaveAndMark(cline)
 					await generateImageTool.handle(cline, block as ToolUse<"generate_image">, {
+						askApproval,
+						handleError,
+						pushToolResult,
+					})
+					break
+				case "get_curated_context":
+					await getCuratedContextTool.handle(cline, block as ToolUse<"get_curated_context">, {
 						askApproval,
 						handleError,
 						pushToolResult,
