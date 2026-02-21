@@ -1,18 +1,51 @@
 active_intents:
-  - id: "INT-001"
-    name: "Build Weather API"
+  - id: "auth-fix-001"
+    name: "Fix session token validation race condition"
+    status: "DONE"
+    owned_scope:
+      - "src/services/auth/**"
+      - "src/shared/**"
+    constraints:
+      - "Non-blocking I/O"
+      - "Backwards compatible API"
+    acceptance_criteria:
+      - "Token validation timeout set to 500ms"
+      - "Retry logic removed from client side"
+
+  - id: "user-types-refactor-002"
+    name: "Standardize User and Subscriber types"
+    status: "DONE"
+    owned_scope:
+      - "src/shared/types/**"
+    constraints:
+      - "Strict boolean checks"
+      - "No 'any' in new types"
+    acceptance_criteria:
+      - "User interface includes subscriptionStatus field"
+      - "Legacy types marked as @deprecated"
+
+  - id: "stripe-webhook-003"
+    name: "Implement Stripe Webhook Handler"
     status: "IN_PROGRESS"
     owned_scope:
-      - "src/services/weather/**"
-      - "src/api/routes/weather.ts"
+      - "src/services/billing/**"
+      - "src/api/webhooks/**"
     constraints:
-      - "Must not use external API keys directly in code"
-      - "Must implement caching"
+      - "Idempotent processing"
+      - "Verify signature secret"
     acceptance_criteria:
-      - "GET /weather returns 200 JSON"
+      - "Handle `checkout.session.completed` event"
+      - "Update user subscription status in DB"
+      - "Log all webhook payloads securely"
 
-  - id: "SYS-001"
-    name: "System Refactor"
+  - id: "ui-subscription-004"
+    name: "Add Subscription Management UI"
     status: "TODO"
     owned_scope:
-      - "src/**"
+      - "src/webview/components/billing/**"
+    constraints:
+      - "Mobile responsive"
+      - "Accessible (ARIA labels)"
+    acceptance_criteria:
+      - "Show current plan details"
+      - "Cancel subscription button works"
