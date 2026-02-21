@@ -288,6 +288,7 @@ export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	run_slash_command: "run slash command",
 	skill: "load skill",
 	generate_image: "generate images",
+	select_active_intent: "select active intent",
 	custom_tool: "use custom tools",
 } as const
 
